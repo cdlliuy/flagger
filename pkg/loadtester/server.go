@@ -55,6 +55,7 @@ func ListenAndServe(port string, timeout time.Duration, logger *zap.SugaredLogge
 		canary := &flaggerv1.CanaryWebhookPayload{}
 		err = json.Unmarshal(body, canary)
 		if err != nil {
+			logger.Infof("request body: %s", string(body))
 			logger.Error("decoding the request body failed", zap.Error(err))
 			w.WriteHeader(http.StatusBadRequest)
 			return
@@ -66,7 +67,7 @@ func ListenAndServe(port string, timeout time.Duration, logger *zap.SugaredLogge
 			return
 		}
 
-		canaryName := fmt.Sprintf("%s.%s", canary.Name, canary.Namespace)
+		canaryName := fmt.Sprintf("%s.%s.%s.%s", canary.Name, canary.Namespace, canary.Metadata["version"], canary.Metadata["phase"])
 		approved := gate.isOpen(canaryName)
 		if approved {
 			w.WriteHeader(http.StatusOK)
@@ -102,7 +103,7 @@ func ListenAndServe(port string, timeout time.Duration, logger *zap.SugaredLogge
 			return
 		}
 
-		canaryName := fmt.Sprintf("%s.%s", canary.Name, canary.Namespace)
+		canaryName := fmt.Sprintf("%s.%s.%s.%s", canary.Name, canary.Namespace, canary.Metadata["version"], canary.Metadata["phase"])
 		gate.open(canaryName)
 
 		w.WriteHeader(http.StatusAccepted)
@@ -133,7 +134,7 @@ func ListenAndServe(port string, timeout time.Duration, logger *zap.SugaredLogge
 			return
 		}
 
-		canaryName := fmt.Sprintf("%s.%s", canary.Name, canary.Namespace)
+		canaryName := fmt.Sprintf("%s.%s.%s.%s", canary.Name, canary.Namespace, canary.Metadata["version"], canary.Metadata["phase"])
 		gate.close(canaryName)
 
 		w.WriteHeader(http.StatusAccepted)
@@ -164,7 +165,7 @@ func ListenAndServe(port string, timeout time.Duration, logger *zap.SugaredLogge
 			return
 		}
 
-		canaryName := fmt.Sprintf("rollback.%s.%s", canary.Name, canary.Namespace)
+		canaryName := fmt.Sprintf("rollback.%s.%s.%s", canary.Name, canary.Namespace, canary.Metadata["version"])
 		approved := gate.isOpen(canaryName)
 		if approved {
 			w.WriteHeader(http.StatusOK)
@@ -199,7 +200,7 @@ func ListenAndServe(port string, timeout time.Duration, logger *zap.SugaredLogge
 			return
 		}
 
-		canaryName := fmt.Sprintf("rollback.%s.%s", canary.Name, canary.Namespace)
+		canaryName := fmt.Sprintf("rollback.%s.%s.%s", canary.Name, canary.Namespace, canary.Metadata["version"])
 		gate.open(canaryName)
 
 		w.WriteHeader(http.StatusAccepted)
@@ -229,7 +230,7 @@ func ListenAndServe(port string, timeout time.Duration, logger *zap.SugaredLogge
 			return
 		}
 
-		canaryName := fmt.Sprintf("rollback.%s.%s", canary.Name, canary.Namespace)
+		canaryName := fmt.Sprintf("rollback.%s.%s.%s", canary.Name, canary.Namespace, canary.Metadata["version"])
 		gate.close(canaryName)
 
 		w.WriteHeader(http.StatusAccepted)
