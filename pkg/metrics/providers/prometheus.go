@@ -104,6 +104,7 @@ func (p *PrometheusProvider) RunQuery(query string) (float64, error) {
 
 	u = p.url.ResolveReference(u)
 
+	fmt.Printf("Make http.NewRequest metric with url  %s\n", u.String())
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return 0, fmt.Errorf("http.NewRequest failed: %w", err)
@@ -137,9 +138,11 @@ func (p *PrometheusProvider) RunQuery(query string) (float64, error) {
 		return 0, fmt.Errorf("error unmarshaling result: %w, '%s'", err, string(b))
 	}
 
+	fmt.Printf("Prometheus response is  %s\n", result)
 	var value *float64
 	for _, v := range result.Data.Result {
 		metricValue := v.Value[1]
+		fmt.Printf("the metric value is %v\n", metricValue)
 		switch metricValue.(type) {
 		case string:
 			f, err := strconv.ParseFloat(metricValue.(string), 64)
